@@ -1,0 +1,17 @@
+diff --git src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
+index e14b804..4686e44 100644
+--- src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
++++ src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
+@@ -92,6 +92,12 @@ private:
+     invocation_response() = default;
+ 
+ public:
++    invocation_response(std::string const& payload, std::string const& content_type, bool success):
++        m_payload(payload),
++        m_content_type(content_type),
++        m_success(success)
++    {}
++
+     /**
+      * Create a successful invocation response with the given payload and content-type.
+      */

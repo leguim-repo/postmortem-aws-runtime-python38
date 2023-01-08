@@ -1,0 +1,79 @@
+diff --git a/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h b/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
+index 4686e44..4268de2 100644
+--- a/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
++++ b/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/include/aws/lambda-runtime/runtime.h
+@@ -85,6 +85,11 @@ private:
+      */
+     bool m_success;
+ 
++    /**
++     * The serialized XRay response header.
++     */
++    std::string m_xray_response;
++
+     /**
+      * Instantiate an empty response. Used by the static functions 'success' and 'failure' to create a populated
+      * invocation_response
+@@ -92,10 +97,11 @@ private:
+     invocation_response() = default;
+
+ public:
+-    invocation_response(std::string const& payload, std::string const& content_type, bool success):
++    invocation_response(std::string const& payload, std::string const& content_type, bool success, std::string const& xray_response):
+         m_payload(payload),
+         m_content_type(content_type),
+-        m_success(success)
++        m_success(success),
++        m_xray_response(xray_response)
+     {}
+
+     /**
+@@ -107,7 +113,7 @@ public:
+      * Create a failure response with the given error message and error type.
+      * The content-type is always set to application/json in this case.
+      */
+-    static invocation_response failure(std::string const& error_message, std::string const& error_type);
++    static invocation_response failure(std::string const& error_message, std::string const& error_type, std::string const& xray_response);
+ 
+     /**
+      * Get the MIME type of the payload.
+@@ -123,6 +129,11 @@ public:
+      * Returns true if the payload and content-type are set. Returns false if the error message and error types are set.
+      */
+     bool is_success() const { return m_success; }
++
++    /**
++     * Get the XRay response string. The string isassumed to be UTF-8 encoded.
++     */
++    std::string const& get_xray_response() const { return m_xray_response; }
+ };
+ 
+ struct no_result {
+diff --git a/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/src/runtime.cpp b/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/src/runtime.cpp
+index 134c219..a2b14fc 100644
+--- a/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/src/runtime.cpp
++++ b/src/deps/aws-lambda-cpp-1c884fe4392b2d73947d6d6dc8da6a4b146e412b/src/runtime.cpp
+@@ -314,6 +314,7 @@ runtime::post_outcome runtime::do_post(
+         headers = curl_slist_append(headers, ("content-type: " + handler_response.get_content_type()).c_str());
+     }
+ 
++    headers = curl_slist_append(headers, ("lambda-runtime-function-xray-error-cause: " + handler_response.get_xray_response()).c_str());
+     headers = curl_slist_append(headers, "Expect:");
+     headers = curl_slist_append(headers, "transfer-encoding:");
+     headers = curl_slist_append(headers, get_user_agent_header().c_str());
+@@ -486,13 +487,15 @@ invocation_response invocation_response::success(std::string const& payload, std
+ }
+ 
+ AWS_LAMBDA_RUNTIME_API
+-invocation_response invocation_response::failure(std::string const& error_message, std::string const& error_type)
++invocation_response invocation_response::failure(std::string const& error_message, std::string const& error_type, std::string const& xray_response)
+ {
+     invocation_response r;
+     r.m_success = false;
+     r.m_content_type = "application/json";
+     r.m_payload = R"({"errorMessage":")" + json_escape(error_message) + R"(","errorType":")" + json_escape(error_type) +
+                   R"(", "stackTrace":[]})";
++    r.m_xray_response = xray_response;
++
+     return r;
+ }

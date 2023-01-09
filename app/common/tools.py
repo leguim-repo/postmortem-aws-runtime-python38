@@ -12,6 +12,6 @@ def print_os_environ():
         environ_keys[k] = v
 
 
-def show_lib_versions():
+def show_modules():
     LOGGER.info(f'Info about modules in layer')
     LOGGER.info(f'all modules list\n: {str(help("modules"))}')

@@ -27,6 +27,10 @@ run_docker: ## Run container based on image
 invoke_from_docker: ## Invoke lambda from Docker container
 	curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
 
+.PHONY: shell_on_docker
+shell_on_docker: ## Interactive shell on docker
+	docker exec -it aws-lambda-python38-container /bin/bash
+
 .PHONY: push_image_to_minikube
 push_image_to_minikube: ## Push image to minikube repository
 	minikube start; \

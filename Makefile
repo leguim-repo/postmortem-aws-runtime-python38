@@ -4,6 +4,9 @@ NOW = $(shell date +"%Y%m%d%H%M%S")
 UID = $(shell id -u)
 PWD = $(shell pwd)
 PYTHON=$(shell which python3)
+IMAGE_NAME="aws-lambda-python38"
+CONTAINER_NAME="aws-lambda-python38-container"
+DEBUG_IMAGE="ubuntu"
 
 .PHONY: help
 help: ## prints all targets available and their description
@@ -17,47 +20,48 @@ how_run_python_http_server: ## Just a little help
 
 .PHONY: create_docker_image
 create_docker_image: ## Create docker image of AWS Lambda Runtime Python38
-	docker build -t aws-lambda-python38 -f Dockerfile .
+	@docker build -t $(IMAGE_NAME) -f Dockerfile .
 
 .PHONY: run_docker
 run_docker: ## Run container based on image
-	docker run --name aws-lambda-python38-container --rm -d -p 9000:8080 -p 7000:7000 aws-lambda-python38
+	@docker run --name $(CONTAINER_NAME) --rm -d -p 9000:8080 -p 7000:7000 $(IMAGE_NAME)
 
 .PHONY: invoke_from_docker
 invoke_from_docker: ## Invoke lambda from Docker container
-	curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
+	@curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
 
 .PHONY: shell_on_docker
 shell_on_docker: ## Interactive shell on docker
-	docker exec -it aws-lambda-python38-container /bin/bash
+	@docker exec -it $(CONTAINER_NAME) /bin/bash
 
 .PHONY: push_image_to_minikube
-push_image_to_minikube: ## Push image to minikube repository
-	minikube start; \
-	echo "Pushing Docker image to minikube repository. Please wait..."; \
-	minikube image load aws-lambda-python38
+push_image_to_minikube: ## Push image to Minikube repository
+	@minikube start
+	@echo "👉 Pushing Docker image to Minikube repository."
+	@echo "⏳ Please wait..."
+	@minikube image load $(IMAGE_NAME)
 
 .PHONY: list_minikube_images
-list_minikube_images: ## Images list from minikube
-	minikube image ls --format table
+list_minikube_images: ## Images list from Minikube
+	@minikube image ls --format table
 
 .PHONY: run_pod
 run_pod: ## Run pod with AWS Lambda Runtime Python38
-	kubectl run aws-lambda-python38-container --image=aws-lambda-python38 --image-pull-policy=Never --restart=Never; \
-	echo "Wating 5 seconds..."; \
-	sleep 5; \
-	echo "Open another terminal to invoke from pod"
-	kubectl port-forward pod/aws-lambda-python38-container 8080:8080 7000:7000
+	@kubectl run $(CONTAINER_NAME) --image=$(IMAGE_NAME) --image-pull-policy=Never --restart=Never
+	@echo "⏳ Wating 5 seconds..."
+	@sleep 5
+	@echo "👉 Open another terminal to invoke from pod"
+	@kubectl port-forward pod/$(CONTAINER_NAME) 8080:8080 7000:7000
 
 .PHONY: invoke_from_pod
 invoke_from_pod: ## Invoke Lambda from kubernetes pod
-	curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
+	@curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"payload":"hello world!"}'
 
 .PHONY: shell_on_pod
 shell_on_pod: ## Interactive shell on pod
-	kubectl exec -it aws-lambda-python38-container -- bash
+	@kubectl exec -it $(CONTAINER_NAME) -- bash
 
 .PHONY: debug_pod
 debug_pod: ## Debug pod
-	kubectl debug -it aws-lambda-python38-container --image=ubuntu --target=aws-lambda-python38-container
+	@kubectl debug -it $(CONTAINER_NAME) --image=$(DEBUG_IMAGE) --target=$(CONTAINER_NAME)
 

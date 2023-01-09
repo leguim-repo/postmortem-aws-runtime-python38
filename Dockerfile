@@ -1,7 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.8
 
-# common items
-RUN yum -y install mc
+# common items tool to play better
+RUN yum -y install mc procps zip
 
 # Copy function code
 COPY app ${LAMBDA_TASK_ROOT}/app

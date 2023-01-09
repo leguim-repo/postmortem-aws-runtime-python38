@@ -19,9 +19,9 @@ how_run_python_http_server: ## Just a little help
 create_docker_image: ## Create docker image of AWS Lambda Runtime Python38
 	docker build -t aws-lambda-python38 -f Dockerfile .
 
-.PHONY: run_container
-run_container: ## Run container based on image
-	docker run --rm -d -p 9000:8080 -p 7000:7000 aws-lambda-python38
+.PHONY: run_docker
+run_docker: ## Run container based on image
+	docker run --name aws-lambda-python38-container --rm -d -p 9000:8080 -p 7000:7000 aws-lambda-python38
 
 .PHONY: invoke_from_docker
 invoke_from_docker: ## Invoke lambda from Docker container

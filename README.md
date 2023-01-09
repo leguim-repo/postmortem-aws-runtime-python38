@@ -1,13 +1,22 @@
 <img src="readme/icon.png" align="right" />
 
-# Postmortem Aws runtime python38 [![Awesome](readme/badge.svg)](https://github.com/leguim-repo)
-> Just lambda runtime environment extracted from Docker image
+# Postmortem Aws Runtime Python38 [![Awesome](readme/badge.svg)](https://github.com/leguim-repo)
 
-Just lambda runtime environment extracted from Docker image for analysis purposes and tests
+> Playground just for fun of Aws Lambda Runtime Python38.
+
+Just a playground to play with Aws Lambda Runtime environment.
 
 ## Installation
 
 Docker, minikube, macos
+
+A good point is execute `make` in a terminal.
+
+The folder `runtime_python_3.8.16-63ae2da3` contains runtime environment extracted from image
+
+You can play with Docker or with Kubernetes.
+
+Remember this repository is just for fun.
 
 ---
 <!-- Pit i Collons -->
